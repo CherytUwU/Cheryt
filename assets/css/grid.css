@@ -1,0 +1,302 @@
+:root{
+    --chp-img: url(https://i.ibb.co/42knHtB/cherytb.png);
+    --pdj-img: url(https://i.ibb.co/Ytmy1V9/icon-header2.png);
+    --bs-img: url(https://raw.githubusercontent.com/CherytUwU/DownloadSargento/master/assets/img/Sargento.png);
+    --aodesu-img: url(https://i.ibb.co/Lnxsg0t/Logo-Full-Screen-Texto-Azul.png);
+
+    --notfound-img : url(https://cima-afrique.org/cima/images/not-available.png);
+}
+
+.cmsecondary-grid{
+    display: grid;
+    gap: 2rem;
+    grid-auto-flow: dense;
+    grid-auto-rows: dense;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 27rem), 1fr));
+}
+
+.cmters-grid{
+    display: grid;
+    gap: 2rem;
+    grid-auto-flow: dense;
+    grid-auto-rows: dense;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 26rem), 1fr));
+}
+
+.cont-cms-gal{
+    background: #2C3E50;
+    border-radius: 3px;
+    padding: 10px 10px 0px 10px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-shadow: 15px 10px #212F3D;
+}
+
+.languages-u{
+    position: absolute;
+    top: 0;
+    left: 5px;
+    padding: 10px;
+    width: 70px;
+    background: #1B2631;
+    border-radius: 0 0 15px 15px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+}
+
+.lang-u-cont{
+    min-height: 40px;
+    display: flex;
+    text-align: left;
+    flex-direction: row;
+    width: 100%;
+    margin: 5px 0;
+    z-index: 2;
+    position: relative;
+}
+
+.lang-txt{
+    position: absolute;
+    width: 0;
+    overflow: hidden;
+    background: #1B2631;
+    height: 40px;
+    right: 0px;
+    transition: .3s ease all;
+    transform-origin: left;
+    top: 5%;
+}
+
+.lang-u-cont:hover > .lang-txt{
+    width: 100px;
+    transition: .1 ease all;
+    right: -110px;
+}
+
+.lang-u-cont p{
+    margin: 10px;
+    white-space: nowrap;
+}
+
+
+.languages-u-decoration{
+    position: relative;
+    width: 100%;
+    height: 1px;
+}
+
+.languages-u-decoration::after{
+    content: "";
+    position: absolute;
+    top: -24px;
+    left: -2px;
+    border-radius: 10px;
+    border-top: 26px solid #1B2631;
+    border-bottom: 26px solid transparent;
+    border-left: 26px solid #1B2631;
+    border-right: 26px solid transparent;
+    transform: rotate(-135deg);
+}
+
+.languages-u img{
+    margin: 2px;
+    width: 100%;
+    align-self: center;
+}
+
+.bugged::after{
+    content: "Cuenta Con Bugs";
+    position: absolute;
+    right: 0;
+    top: 0;
+    padding: 10px;
+    background: #78281F;
+    border-radius: 3px 0 10px 10px;
+}
+
+.nnow::after{
+    content: "Servicio No Disponible";
+    position: absolute;
+    right: 0;
+    top: 0;
+    padding: 10px;
+    background: #78281F;
+    border-radius: 3px 0 10px 10px;
+}
+
+.fine::after{
+    content: "Estado Optimo";
+    position: absolute;
+    right: 0;
+    top: 0;
+    padding: 10px;
+    background: #1D8348;
+    border-radius: 3px 0 10px 10px;
+}
+
+.incomplete::after{
+    content: "Incompleto";
+    position: absolute;
+    right: 0;
+    top: 0;
+    padding: 10px;
+    background: #AF601A;
+    border-radius: 3px 0 10px 10px;
+}
+
+.working::after{
+    content: "En Proceso";
+    position: absolute;
+    right: 0;
+    top: 0;
+    padding: 10px;
+    background: linear-gradient(var(--ang, 0deg), var(--grad1, #2dadaf), var(--grad2, #17a353));
+	animation: bg-pross 15s linear infinite;
+    border-radius: 3px 0 10px 10px;
+}
+
+/*
+*
+*/
+
+.html-p::after{
+    content: "Dominado: 70%";
+    position: absolute;
+    right: 0;
+    top: 0;
+    padding: 10px;
+    width: calc(100% - 20px);
+    background: #e34f26;
+	animation: bg-pross 15s linear infinite;
+    border-radius: 3px 0 10px 10px;
+}
+
+.css-p::after{
+    content: "Dominado: 90%";
+    position: absolute;
+    right: 0;
+    top: 0;
+    padding: 10px;
+    width: calc(100% - 20px);
+    background: #1572b6;
+	animation: bg-pross 15s linear infinite;
+    border-radius: 3px 0 10px 10px;
+}
+
+.js-p::after{
+    content: "Dominado: 5%";
+    position: absolute;
+    right: 0;
+    top: 0;
+    color: #000;
+    padding: 10px;
+    width: calc(100% - 20px);
+    background: #f7df1e;
+	animation: bg-pross 15s linear infinite;
+    border-radius: 3px 0 10px 10px;
+}
+
+.sass-p::after{
+    content: "Dominado: 50%";
+    position: absolute;
+    right: 0;
+    top: 0;
+    color: #000;
+    padding: 10px;
+    width: calc(100% - 20px);
+    background: #cd6799;
+	animation: bg-pross 15s linear infinite;
+    border-radius: 3px 0 10px 10px;
+}
+
+.react-p::after{
+    content: "Dominado: 50%";
+    position: absolute;
+    right: 0;
+    top: 0;
+    color: #000;
+    padding: 10px;
+    width: calc(100% - 20px);
+    background: #61dafb;
+	animation: bg-pross 15s linear infinite;
+    border-radius: 3px 0 10px 10px;
+}
+
+.cont-cms-gal-img,
+.cont-cms-gal-img-chp,
+.cont-cms-gal-img-pdj,
+.cont-cms-gal-img-bs,
+.cont-cms-gal-img-inf,
+.cont-cms-gal-img-aodesu{
+    width: 90%;
+    margin: 20px auto 0;
+    height: 310px;
+    overflow: hidden;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position-x: center;
+    background-position-y: center;
+}
+.cont-cms-gal-img-chp{
+    background-image: var(--chp-img);
+}
+
+.cont-cms-gal-img-pdj{
+    background-image: var(--pdj-img);
+}
+
+.cont-cms-gal-img-bs{
+    background-image: var(--bs-img);
+}
+
+.cont-cms-gal-img-inf{
+    background-image: var(--notfound-img);
+}
+
+.cont-cms-gal-img-aodesu{
+    background-image: var(--aodesu-img);
+}
+
+.cont-cms-gal-img img{
+    width: 100%;
+}
+
+.cont-cms-gal-btn{
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 2rem), 1fr));
+    text-align: center;
+    width: 100%;
+    padding: 10px 0;
+    background: #17202A;
+    margin-left: -10px;
+    border-radius: 0 0 3px 3px;
+}
+
+@keyframes bg-pross{
+    0% {
+		--grad1: #2ECC71;
+		--grad2: #229954;		
+	}
+	25% {
+		--grad1: #D4AC0D;
+		--grad2: #F39C12;
+	}
+
+    50% {
+        --grad1: #2E86C1;
+        --grad2: #2471A3;
+    }
+
+    75% {
+        --grad1: #D4AC0D;
+		--grad2: #F39C12;
+    }
+    100% {
+        --ang: 1turn;
+		--grad1: #2ECC71;
+		--grad2: #229954;				
+	}
+}
