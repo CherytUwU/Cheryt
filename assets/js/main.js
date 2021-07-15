@@ -1,421 +1,385 @@
-'use strict';
-
-/**
- * 
- */
-class Tracks {
-
-    constructor( containerId, options ) {
-        this.containerId  = containerId;
-        this.container    = document.getElementById( containerId );
-        this.canvas       = document.createElement( 'canvas' );
-        this.context      = this.canvas.getContext( '2d' );
-        this.preCanvas    = document.createElement( 'canvas' );
-        this.preContext   = this.preCanvas.getContext( '2d' );
-        this.lines        = [];
-        this.options      = Object.assign({
-            fps:              30,
-            autoSize:         true,
-            lineWeight:       20,
-            lineGap:          5,
-            backgroundColor:  '#fff',
-            minSegmentLength: 0,
-            maxSegmentLength: 100,
-            minSegmentGap:    10,
-            maxSegmentGap:    600,
-        }, options );
-
-        this.container.appendChild( this.canvas );
-        this.renderSpeedLog = [];
-
-        this.update();
-        this.animate();
-    
-        window.addEventListener( 'resize',  this.update.bind( this ) );
-    }
-
-    render() {
-        let ctx = this.context;
-
-        ctx.fillStyle = this.options.backgroundColor;
-        ctx.fillRect( 0, 0, this.width(), this.height() );
-
-        ctx.save();
-        ctx.globalCompositeOperation = 'destination-out';
-
-        this.lines.forEach( line => {
-            line.segments.forEach( segment => { 
-                let point1 = segment.point1;
-                let point2 = segment.point2;
-                let width  = point2.x - point1.x;
-                let height = this.options.lineWeight;
-
-                [ point1, point2 ].forEach( point => {
-                    ctx.beginPath();
-                    ctx.arc(  point.x, point.y , this.options.lineWeight / 2, 0, 2 * Math.PI, false );
-                    ctx.fill();
-                });
-
-                ctx.fillRect( point1.x, point1.y - height / 2, width, height );
-            });
-        });
-        
-        ctx.restore();
-
-        this.context.drawImage( this.preCanvas, 0, 0 );
-    }
-
-    animate() {
-        if( true === this.paused ) {
-            return;
-        }
-
-        this.render();
-
-        setTimeout( () => {
-            requestAnimationFrame( this.animate.bind( this ) );
-        }, 1000 / this.options.fps );
-    }
-
-    update() {
-        if( this.options.autoSize || true ) {
-            this.canvas.width  = this.preCanvas.width  = this.container.offsetWidth;
-            this.canvas.height = this.preCanvas.height = this.container.offsetHeight;
-        }
-    }
-
-    generateLines() {
-        let 
-            totalLines       = Math.floor( this.height() / ( this.options.lineWeight + this.options.lineGap ) ),
-            totalLinesHeight = ( this.options.lineWeight + this.options.lineGap ) * totalLines - this.options.lineGap,
-            offset           = totalLinesHeight / totalLines - ( this.options.lineWeight + this.options.lineGap ) / 2;
-
-        while( this.lines.length < totalLines ) {
-            let 
-                y    = ( this.options.lineWeight + this.options.lineGap ) * this.lines.length + offset,
-                line = new Line( this.context, 0, y, this.width(), y, {} );
-
-            line.segments = this.generateSegments( line );
-
-            this.lines.push( line );
-        }
-    }
-
-    generateSegments( line ) {
-        let
-            counter  = Math.random() * 1 > .5 ? 0 : 1,
-            x        = line.x1 + this.options.lineWeight,
-            segments = [],
-            filled   = false;
-
-        while( ! filled ) {
-            let
-                gap   = counter % 2,
-                min   = gap ? this.options.minSegmentGap : this.options.minSegmentLength,
-                max   = gap ? this.options.maxSegmentGap : this.options.maxSegmentLength,
-                width = this.getRandomIntInclusive( min, max );
-
-            if( gap ) {
-                x += width;
-                counter++;
-                continue;
-            }
-
-            if( x + width >= line.x2 - this.options.lineWeight ) {
-                if( ( line.x2 - this.options.lineWeight ) - x > this.options.minSegmentGap ) {
-                    segments.push( new Line( 
-                        this.context,
-                        x,
-                        line.y1,
-                        line.x2 - this.options.lineWeight,
-                        line.y2,
-                        {}
-                    ));
-                }
-                
-                return segments;
-            }
-
-            segments.push( new Line( 
-                this.context,
-                x,
-                line.y1,
-                x + width,
-                line.y2,
-                {}
-            ));
-
-            x += width;
-            counter++;
-        }
-
-        return segments;
-    }
-
-    getRandomIntInclusive( min, max ) {
-        min = Math.ceil(min);
-        max = Math.floor(max);
-
-        return Math.floor( Math.random() * ( max - min + 1 ) ) + min;
-    }
-  
-    pause() {
-        this.paused = true;  
-    }
-    
-    play() {
-        this.paused = false;
-        
-        this.animate();
-    }
-
-    width() {
-        return this.canvas.offsetWidth;
-    }
-
-    height() {
-        return this.canvas.offsetHeight;
-    }
-}
-
-
-/**
- * 
- */
-class Line {
-
-    constructor( context, x1, y1, x2, y2, options ) {
-        this.context  = context;
-        this.segments = [];
-        this.options  = Object.assign( {}, options );
-
-        this._x1     = x1;
-        this._y1     = y1;
-        this._x2     = x2;
-        this._y2     = y2;
-        this._point1 = { x: x1, y: y1 };
-        this._point2 = { x: x2, y: y2 };
-        this._slope  = ( y2 - y1 ) / ( x2 - x1 );
-        this._length = this.distanceBetween( this._point1, this._point2 );
-    }
-
-    render() {
-        if( ! this.segments.length ) return;
-
-        this.segments.forEach( segment => {
-            segment.render();
-        });
-    }
-
-    plotPoint( distance ) {
-        let coef = distance / this._length;
-        
-        return { 
-
-            x: this._x1 + ( this._x2 - this._x1 ) * coef, 
-            y: this._y1 + ( this._y2 - this._y1 ) * coef
-
-        };
-    }
-
-    angleBetween( point1, point2 ) {
-        return Math.atan2( point2.y - point1.y, point2.x - point1.x );
-    }
-
-    distanceBetween( point1, point2 ) {
-        let a = point1.x - point2.x;
-        let b = point1.y - point2.y;
-
-        return Math.sqrt( a * a + b * b );
-    }
-
-    get point1() {
-        return this._point1;
-    }
-
-    get point2() {
-        return this._point2;
-    }
-
-    get length() {
-        return this._length;
-    }
-
-    get slope() {
-        return this._slope;
-    }
-
-    get x1() {
-        return this._x1;
-    }
-
-    get y1() {
-        return this._y1;
-    }
-
-    get x2() {
-        return this._x2;
-    }
-
-    get y2() {
-        return this._y2;
-    }
-
-    set x1( number ) {
-        this._x1 = number;
-
-        this._point1 = { x: this._x1, y: this._y1 };
-        this._slope  = ( this._y2 - this._y1 ) / ( this._x2 - this._x1 );
-        this._length = this.distanceBetween( this._point1, this._point2 );
-    }
-
-    set y1( number ) {
-        this._y1 = number;
-
-        this._point1 = { x: this._x1, y: this._y1 };
-        this._slope  = ( this._y2 - this._y1 ) / ( this._x2 - this._x1 );
-        this._length = this.distanceBetween( this._point1, this._point2 );
-    }
-
-    set x2( number ) {
-        this._x2 = number;
-
-        this._point2 = { x: this._x2, y: this._y2 };
-        this._slope  = ( this._y2 - this._y1 ) / ( this._x2 - this._x1 );
-        this._length = this.distanceBetween( this._point1, this._point2 );
-    }
-
-    set y2( number ) {
-        this._y2 = number;
-
-        this._point2 = { x: this._x2, y: this._y2 };
-        this._slope  = ( this._y2 - this._y1 ) / ( this._x2 - this._x1 );
-        this._length = this.distanceBetween( this._point1, this._point2 );		
-    }
-}
-
-
-/**
- * 
- */
-class Segment extends Line {
-
-    constructor( context, x1, y1, x2, y2, options ) {
-        super( context, x1, y1, x2, y2, options );
-
-        this.context = context;
-        this.options = Object.assign( {}, options );
-    }
-}
-
-
-/**
- * 
- */
- class TrackOptions {
-    constructor() {
-        this.lineWeight       = 10;
-        this.lineGap          = 10;
-        this.minSegmentLength = 50;
-        this.maxSegmentLength = 400;
-        this.minSegmentGap    = 10;
-        this.maxSegmentGap    = 100;
-    }
-}
-
-
-/**
- * 
- */
-
- (() => {
-
-    let 
-        tracks,
-        trackOptions,
-        gui,
-        controllers;
-
-    document.addEventListener( 'DOMContentLoaded', event => {
-        tracks = new Tracks( 'container', {
-            fps:              1,
-            lineWeight:       10,
-            lineGap:          10,
-            minSegmentLength: 0,
-            maxSegmentLength: 400,
-            minSegmentGap:    10,
-            maxSegmentGap:    100,
-        });
-
-        tracks.update();
-        tracks.generateLines();
-        tracks.render();
-    });
-
-    window.addEventListener( 'load', event => {
-        trackOptions = new TrackOptions();
-        controllers  = [];
-        gui          = new dat.GUI();
-
-        gui.useLocalStorage = true;
-        gui.remember( trackOptions );
-
-        controllers.push( gui.add( trackOptions, 'lineWeight',       1, 100  ) );
-        controllers.push( gui.add( trackOptions, 'lineGap',          1, 100  ) );
-        controllers.push( gui.add( trackOptions, 'minSegmentLength', 0, 1000 ) );
-        controllers.push( gui.add( trackOptions, 'maxSegmentLength', 0, 1000 ) );
-        controllers.push( gui.add( trackOptions, 'minSegmentGap',    1, 1000 ) );
-        controllers.push( gui.add( trackOptions, 'maxSegmentGap',    1, 1000 ) );
-
-        controllers.forEach( controller => {
-            
-            controller.onChange( value => {
-
-                update();
-
-            })
-
-        });
-
-        update();
-    });
-
-    function update() {
-        tracks.options.lineWeight       = trackOptions.lineWeight;
-        tracks.options.lineGap          = trackOptions.lineGap;
-        tracks.options.minSegmentLength = trackOptions.minSegmentLength;
-        tracks.options.maxSegmentLength = trackOptions.maxSegmentLength;
-        tracks.options.minSegmentGap    = trackOptions.minSegmentGap;
-        tracks.options.maxSegmentGap    = trackOptions.maxSegmentGap;
-
-        tracks.lines = [];
-
-        tracks.update();
-        tracks.generateLines();
-        tracks.render();
-    }
-})();
-
-/**
- * 
- */
- CSS.registerProperty({
-    name: '--ang', 
-    syntax: '<angle>', 
-    initialValue: '0deg', 
-    inherits: true
-});
-
-CSS.registerProperty({
-    name: '--grad1', 
-    syntax: '<color>', 
-    initialValue: '#2dadaf', 
-    inherits: false
-});
-
-CSS.registerProperty({
-    name: '--grad2', 
-    syntax: '<color>', 
-    initialValue: '#17a353', 
-    inherits: false
-});
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minumu-scale=1.0" />
+        <title>EKISDE</title>
+        <link rel="stylesheet" href="./assets/css/styles.css">
+        <link rel="stylesheet" href="./assets/css/grid.css">
+        <script src="https://cdn.jsdelivr.net/npm/pace-js@latest/pace.min.js"></script>
+        <script src="https://kit.fontawesome.com/158739efff.js" crossorigin="anonymous"></script>
+    </head>
+    <body>
+        <div class="fbp-01"></div>
+        <div class="ctrpintro">
+            <div class="drop-shadow">
+                <div class="glass"></div>
+                <span class="contentpp">
+                    <div class="contimg"><img src="https://i.ibb.co/42knHtB/cherytb.png" /></div>
+                    <div class="conttxtname"><h1>Cheryt</h1></div>
+                    <div class="conttxtmailto"><a href="mailto:contacto.sergiocortes@gmail.com">contacto.sergiocortes@gmail.com</a></div>
+                    <div class="conttxtareas"> Front-end Developer </div>
+            </div>
+        </div>
+
+        <div class="cmprincipal">
+            <div class="cmprimary-margin-w">
+                <div class="container-text-p">
+                    <div class="pre-text-p">
+                        <p>Mi nombre es Sergio, comúnmente conocido como Cheryt, tengo 16 años y Programar es mi hobby.</p>
+                        <p>Me dedico enteramente al Front-end (por ahora <i class="far fa-smile-wink"></i> ) y me gusta aprender algo nuevo cada dia.</p>
+                    </div>
+                    <p style="font-size: 16px;">Por ahora no cuento con experiencia profesional, solo produzco prototipos para mi aprendizaje.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="cmsecondary">
+            <div class="cmsecondary-margin-w">
+
+                <div class="cmsecondary-title">
+                    <h2>Galería De Proyectos</h2>
+                </div>
+
+                <div class="cmsecondary-grid">
+                    <div class="cont-cms-gal working">
+                        <div class="languages-u">  
+                            <div class="lang-u-cont">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/3/38/HTML5_Badge.svg" alt="HTML 5" />
+                                <div class="lang-txt">
+                                    <p>HTML 5</p>
+                                </div>
+                            </div> 
+                            <div class="lang-u-cont">   
+                                <img src="https://code.naustud.io/code-guide/img/css-logo.svg" alt="CSS 3" />
+                                <div class="lang-txt">
+                                    <p>CSS 3</p>
+                                </div>
+                            </div>
+                            <div class="lang-u-cont">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/4/47/React.svg" alt="React.js" />
+                                <div class="lang-txt">
+                                    <p>React</p>
+                                </div>
+                            </div>
+                            <div class="lang-u-cont">
+                                <img src="https://cdn.worldvectorlogo.com/logos/npm.svg" alt="npm" />
+                                <div class="lang-txt">
+                                    <p>NPM</p>
+                                </div>
+                            </div>
+                            <div class="languages-u-decoration"></div>
+                        </div>
+                        <div class="cont-cms-gal-img-aodesu">
+                        </div>
+                        <div class="cont-cms-gal-txt">
+                            <div class="txt-title">
+                                <h4>AoDesu | Anime Online</h4>
+                            </div>
+                            <div class="txt-date">
+                                <p>Publicado el <span class="date">14 / Mayo / 2021</span></p>
+                            </div>
+                        </div>
+                        <div class="cont-cms-gal-btn">
+                            <div class="gal-btn-repo"><a href="https://github.com/CherytUwU/AoDesu-Anime_Online">Repositorio <i class="fab fa-github"></i></a></div>
+                            <div class="gal-btn-url"><a href="https://eager-shockley-4c5751.netlify.app/">Url <i class="fas fa-external-link-alt"></i></a></div>
+                        </div>
+                    </div>
+
+                    <!-- Challenge -->
+                    <div class="cont-cms-gal fine">
+                        <div class="cont-cms-gal-img-inf">
+                        <div class="languages-u">
+                            <div class="lang-u-cont">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/3/38/HTML5_Badge.svg" alt="HTML 5" />
+                                <div class="lang-txt">
+                                    <p>HTML 5</p>
+                                </div>
+                            </div> 
+                            <div class="lang-u-cont">   
+                                <img src="https://code.naustud.io/code-guide/img/css-logo.svg" alt="CSS 3" />
+                                <div class="lang-txt">
+                                    <p>CSS 3</p>
+                                </div>
+                            </div>
+                            <div class="lang-u-cont">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/9/99/Unofficial_JavaScript_logo_2.svg" alt="Javascript"/>
+                                <div class="lang-txt">
+                                    <p>Javascript</p>
+                                </div>
+                            </div>
+                            <div class="lang-u-cont">
+                                <img src="https://cdn.worldvectorlogo.com/logos/npm.svg" alt="npm" />
+                                <div class="lang-txt">
+                                    <p>NPM</p>
+                                </div>
+                            </div>
+                            <div class="languages-u-decoration"></div>
+                        </div>
+                        </div>
+                        <div class="cont-cms-gal-txt">
+                            <div class="txt-title">
+                                <h4>Challenge StacklyCode | QuoteAPI</h4>
+                            </div>
+                            <div class="txt-date">
+                                <p>Publicado el <span class="date">24 / Marzo / 2021</span></p>
+                            </div>
+                        </div>
+                        <div class="cont-cms-gal-btn">
+                            <div class="gal-btn-repo"><a href="https://github.com/CherytUwU/ChallengeStacklyQuoteAPI">Repositorio <i class="fab fa-github"></i></a></div>
+                            <div class="gal-btn-url"><a href="https://loving-jennings-4d055e.netlify.app/">Url <i class="fas fa-external-link-alt"></i></a></div>
+                        </div>
+                    </div>
+
+                    <!-- End Gaming-->
+                    <div class="cont-cms-gal incomplete">
+                        <div class="cont-cms-gal-img-inf">
+                            <div class="languages-u">
+                                <div class="lang-u-cont">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/38/HTML5_Badge.svg" alt="HTML 5" />
+                                    <div class="lang-txt">
+                                        <p>HTML 5</p>
+                                    </div>
+                                </div> 
+                                <div class="lang-u-cont">   
+                                    <img src="https://code.naustud.io/code-guide/img/css-logo.svg" alt="CSS 3" />
+                                    <div class="lang-txt">
+                                        <p>CSS 3</p>
+                                    </div>
+                                </div>
+                                <div class="lang-u-cont">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/9/99/Unofficial_JavaScript_logo_2.svg" alt="Javascript"/>
+                                    <div class="lang-txt">
+                                        <p>Javascript</p>
+                                    </div>
+                                </div>
+                                <div class="languages-u-decoration"></div>
+                            </div>
+                        </div>
+                        <div class="cont-cms-gal-txt">
+                            <div class="txt-title">
+                                <h4>End Gaming</h4>
+                            </div>
+                            <div class="txt-date">
+                                <p>Publicado el <span class="date">02 / Abril / 2021</span></p>
+                            </div>
+                        </div>
+                        <div class="cont-cms-gal-btn">
+                            <div class="gal-btn-repo"><a href="https://github.com/CherytUwU/EndGaming">Repositorio <i class="fab fa-github"></i></a></div>
+                            <div class="gal-btn-url"><a href="https://angry-mestorf-9e549c.netlify.app/">Url <i class="fas fa-external-link-alt"></i></a></div>
+                        </div>
+                    </div>
+
+                    <!-- Slider Infinito-->
+                    <div class="cont-cms-gal fine">
+                        <div class="cont-cms-gal-img-inf">
+                            <div class="languages-u">
+                                <div class="lang-u-cont">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/38/HTML5_Badge.svg" alt="HTML 5" />
+                                    <div class="lang-txt">
+                                        <p>HTML 5</p>
+                                    </div>
+                                </div> 
+                                <div class="lang-u-cont">   
+                                    <img src="https://code.naustud.io/code-guide/img/css-logo.svg" alt="CSS 3" />
+                                    <div class="lang-txt">
+                                        <p>CSS 3</p>
+                                    </div>
+                                </div>
+                                <div class="lang-u-cont">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/9/99/Unofficial_JavaScript_logo_2.svg" alt="Javascript"/>
+                                    <div class="lang-txt">
+                                        <p>Javascript</p>
+                                    </div>
+                                </div>
+                                <div class="languages-u-decoration"></div>
+                            </div>
+                        </div>
+                        <div class="cont-cms-gal-txt">
+                            <div class="txt-title">
+                                <h4>Slider Infinito</h4>
+                            </div>
+                            <div class="txt-date">
+                                <p>Publicado el <span class="date">29 / Marzo / 2021</span></p>
+                            </div>
+                        </div>
+                        <div class="cont-cms-gal-btn">
+                            <div class="gal-btn-repo"><a href="https://github.com/CherytUwU/SliderInfinitot">Repositorio <i class="fab fa-github"></i></a></div>
+                        </div>
+                    </div>
+
+                    <!-- Bot Sargento -->
+                    <div class="cont-cms-gal nnow">
+                        <div class="cont-cms-gal-img-bs">
+                            <div class="languages-u">
+                                <div class="lang-u-cont">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/38/HTML5_Badge.svg" alt="HTML 5" />
+                                    <div class="lang-txt">
+                                        <p>HTML 5</p>
+                                    </div>
+                                </div> 
+                                <div class="lang-u-cont">   
+                                    <img src="https://code.naustud.io/code-guide/img/css-logo.svg" alt="CSS 3" />
+                                    <div class="lang-txt">
+                                        <p>CSS 3</p>
+                                    </div>
+                                </div>
+                                <div class="lang-u-cont">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/9/99/Unofficial_JavaScript_logo_2.svg" alt="Javascript"/>
+                                    <div class="lang-txt">
+                                        <p>Javascript</p>
+                                    </div>
+                                </div>
+                                <div class="lang-u-cont">
+                                    <img src="https://koya.gg/assets/img/discordjs-logo.png" alt="Discord.js" />
+                                    <div class="lang-txt">
+                                        <p>Discord.js</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="languages-u-decoration"></div>
+                            </div>
+                        </div>
+                        <div class="cont-cms-gal-txt">
+                            <div class="txt-title">
+                                <h4>Bot Sargento</h4>
+                            </div>
+                            <div class="txt-date">
+                                <p>Publicado el <span class="date">10 / Marzo / 2021</span></p>
+                            </div>
+                        </div>
+                        <div class="cont-cms-gal-btn">
+                            <div class="gal-btn-repo"><a href="https://github.com/CherytUwU/cherytproject">Repositorio <i class="fab fa-github"></i></a></div>
+                            <div class="gal-btn-url"><a href="https://cherytuwu.github.io/cherytproject/">Url <i class="fas fa-external-link-alt"></i></a></div>
+                        </div>
+                    </div>
+
+                    <!-- Cheryt Project-->
+                    <div class="cont-cms-gal bugged">
+                        <div class="cont-cms-gal-img-chp">
+                            <div class="languages-u">
+                                <div class="lang-u-cont">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/38/HTML5_Badge.svg" alt="HTML 5" />
+                                    <div class="lang-txt">
+                                        <p>HTML 5</p>
+                                    </div>
+                                </div> 
+                                <div class="lang-u-cont">   
+                                    <img src="https://code.naustud.io/code-guide/img/css-logo.svg" alt="CSS 3" />
+                                    <div class="lang-txt">
+                                        <p>CSS 3</p>
+                                    </div>
+                                </div>
+                                <div class="languages-u-decoration"></div>
+                            </div>
+                        </div>
+                        <div class="cont-cms-gal-txt">
+                            <div class="txt-title">
+                                <h4>Cheryt Project</h4>
+                            </div>
+                            <div class="txt-date">
+                                <p>Publicado el <span class="date">07 / Marzo / 2021</span></p>
+                            </div>
+                        </div>
+                        <div class="cont-cms-gal-btn">
+                            <div class="gal-btn-repo"><a href="https://github.com/CherytUwU/cherytproject">Repositorio <i class="fab fa-github"></i></a></div>
+                            <div class="gal-btn-url"><a href="https://cherytuwu.github.io/cherytproject/">Url <i class="fas fa-external-link-alt"></i></a></div>
+                        </div>
+                    </div>
+
+                    <!-- DON JEISSON -->
+                    <div class="cont-cms-gal bugged">
+                        <div class="cont-cms-gal-img-pdj">
+                            <div class="languages-u">
+                                <div class="lang-u-cont">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/38/HTML5_Badge.svg" alt="HTML 5" />
+                                    <div class="lang-txt">
+                                        <p>HTML 5</p>
+                                    </div>
+                                </div> 
+                                <div class="lang-u-cont">   
+                                    <img src="https://code.naustud.io/code-guide/img/css-logo.svg" alt="CSS 3" />
+                                    <div class="lang-txt">
+                                        <p>CSS 3</p>
+                                    </div>
+                                </div>
+                                <div class="languages-u-decoration"></div>
+                            </div>
+                        </div>
+                        <div class="cont-cms-gal-txt">
+                            <div class="txt-title">
+                                <h4>Panaderia Don Jeisson</h4>
+                            </div>
+                            <div class="txt-date">
+                                <p>Publicado el <span class="date">16 / Febrero / 2021</span></p>
+                            </div>
+                        </div>
+                        <div class="cont-cms-gal-btn" >
+                            <div class="gal-btn-repo"><a href="https://github.com/CherytCode/DonJeisson">Repositorio <i class="fab fa-github"></i></a></div>
+                            <div class="gal-btn-url"><a href="https://cherytcode.github.io/DonJeisson/" target="_blank">Url <i class="fas fa-external-link-alt"></i></a></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="cmters">
+            <div class="cmters-margin-w">
+
+                <div class="cmters-title">
+                    <h2>Tecnologías</h2>
+                </div>
+
+                <div class="cmters-grid">
+                    <div class="cmtech html-p">
+                        <div class="cmtech-img">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/3/38/HTML5_Badge.svg" />
+                        </div>
+                        <div class="cmtech-txt">
+                            <p>HTML 5</p>
+                        </div>
+                    </div>
+
+                    <div class="cmtech css-p">
+                        <div class="cmtech-img">
+                            <img src="https://code.naustud.io/code-guide/img/css-logo.svg" />
+                        </div>
+                        <div class="cmtech-txt">
+                            <p>CSS 3</p>
+                        </div>
+                    </div>
+
+                    <div class="cmtech js-p">
+                        <div class="cmtech-img">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/9/99/Unofficial_JavaScript_logo_2.svg" />
+                        </div>
+                        <div class="cmtech-txt">
+                            <p>Javascript</p>
+                        </div>
+                    </div>
+
+                    <div class="cmtech sass-p">
+                        <div class="cmtech-img">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/9/96/Sass_Logo_Color.svg" />
+                        </div>
+                        <div class="cmtech-txt">
+                            <p>Sass</p>
+                        </div>
+                    </div>
+
+                    <div class="cmtech react-p">
+                        <div class="cmtech-img">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/4/47/React.svg" />
+                        </div>
+                        <div class="cmtech-txt">
+                            <p>React.js</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="container"></div>
+        <script type="text/javascript" src="./assets/js/main.js"></script>
+    </body>
+</html>
