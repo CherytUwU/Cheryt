@@ -1,10 +1,11 @@
 @import url('https://fonts.googleapis.com/css?family=Rajdhani:300&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200;0,300;0,400;0,600;0,700;0,800;0,900;1,200;1,300;1,400;1,600;1,700;1,800;1,900&display=swap');
 
-:root{
-    --blur: 20px;
-    --shadow-opacity: 0.30;
-    --image: url(https://i.pinimg.com/originals/a3/eb/16/a3eb16eaa440267e22051119233a0ca9.jpg);
-}
+    $blur: 20px;
+    $shadow-opacity: 0.30;
+    $image: url(https://i.ibb.co/0yYMGKb/fondoheader.jpg);
+    $font-nornmal: 'Nunito', sans-serif;
+
 
 *{
 	box-sizing: border-box;
@@ -12,20 +13,38 @@
 
 
 body, html {
-    height: 100%;
     margin: 0;
     padding: 0;
 }
 
 body{
+    width: 100%;
+    overflow-x: hidden;
+    font-family: 'Rajdhani', sans-serif;
+}
+
+.ctrpintro{
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     background-size: cover;
     background-position: center;
-    font-family: 'Rajdhani', sans-serif;
+    height: 100vh;
+    animation: flotate 5s linear infinite;
+    transition: .1Ss ease all;
 }
 
+.fbp-01{
+    background: $image;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    background-repeat: no-repeat;
+    background-size: cover;
+    overflow: hidden;
+}
 
 /**
 */
@@ -92,7 +111,7 @@ body{
 
 #container {
     background: linear-gradient(var(--ang, 0deg), var(--grad1, #2dadaf), var(--grad2, #17a353));
-	animation: rotate 5s linear infinite;
+	animation: rotate 10s linear infinite;
 	height: 100%;
 	position: fixed;
     z-index: -1;
@@ -100,42 +119,55 @@ body{
     top: 0;
 }
 
+@keyframes flotate {
+    0% {
+        transform: translateY(5px);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
+
+    100% {
+        transform: translateY(5px);
+    }
+}
+
 @keyframes rotate { 
 	0% {
-		--grad1: #EF476F;
-		--grad2: #FFD166;		
+		--grad1: #154360;
+		--grad2: #1B4F72;		
 	}
 	25% {
-		--grad1: #FB8C00;
-		--grad2: #FDD835;
+		--grad1: #0B5345;
+		--grad2: #186A3B;
 	}
 
     50% {
-        --grad1: #7D3C98;
-        --grad2: #9B59B6;
+        --grad1: #7E5109;
+        --grad2: #7D6608;
     }
 
     75% {
-        --grad1: #009688;
-        --grad2: #8BC34A;
+        --grad1: #0B5345;
+		--grad2: #186A3B;
     }
-
-	100% { 
-		--ang: 1turn;
-		--grad1: #EF476F;
-		--grad2: #FFD166;
-    }
+    100% {
+        --ang: 1turn;
+		--grad1: #154360;
+		--grad2: #1B4F72;			
+	}
 }
 
 
 .glass {
   height: 100%;
   width: 100%;
-   background-image: var(--image);
+  background-image: $image;
   background-size: cover;
   background-position: center;
   clip-path: inset(10em);
-  filter: blur(var(--blur));
+  filter: blur($blur);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -149,28 +181,252 @@ body{
   justify-content: center;
   align-items: center;
   flex-direction: column;
+  position: relative;
+  text-align: center;
 
-    ::before{
-        display: block;
-        content: "";
-        position: absolute;
-        top: 10em;
-        height: calc(100% - 20em);
-        width: calc(100% - 20em);
-        border-top: 2px solid rgba(225,225,225, 0.2);
-        border-left: 1px solid rgba(225,225,225, 0.1);
-        border-right: 1px solid rgba(225,225,225, 0.3);
-        z-index: 2;
-        filter: blur(1px);
-    }
-
-    > span {
+    > span.contentpp {
+        display: flex;
+        flex-direction: column;
         position: absolute;
         z-index: 5;
         color: white;
+        position: absolute;
         font-size: 4em;
         letter-spacing: 0.75em;
         padding-left: 0.375em;
+        font-weight: 700;
+
+        .conttxtname h1{
+            font-size: 5rem;
+            margin: 0;
+        }
+
+        > .contimg {
+            height: 100px;
+
+            > img {
+                height: 100%;
+            }
+        }
+
+        > .conttxtareas{
+            letter-spacing: 0.2em;
+            background-image: url(https://discord.com/assets/a188414ce83f2454b9d71a47c3d95909.svg);
+            background-repeat: no-repeat;
+            background-size: cover;
+            padding: 10px;
+        }
+
+        > .conttxtmailto {
+            letter-spacing: 0.3em;
+            font-size: 3rem;
+
+            > a {
+                text-decoration: none;
+                color: rgb(206, 206, 206);
+                border-bottom: 1px solid transparent;
+                transition: .1s ease all;
+            }
+
+            > a:hover {
+                color: #ffffff;
+                border-bottom: 1px solid #00ffff;
+            }
+        }
+    }
+}
+
+.drop-shadow::before{
+    content: "";
+    position: absolute;
+    top: 10em;
+    height: calc(100% - 20em);
+    width: calc(100% - 20em);
+    border-top: 2px solid rgba(225,225,225, 0.2);
+    border-left: 1px solid rgba(225,225,225, 0.1);
+    border-right: 1px solid rgba(225,225,225, 0.3);
+    background-size: cover;
+    z-index: 2;
+    filter: blur(1px);
+}
+
+.cmprincipal{
+    width: 100vw;
+
+    .cmprimary-margin-w{
+        width: 90%;
+        margin: 0 auto;
+        padding: 3rem 0; 
+
+        .container-text-p{
+            background: #212F3C;
+            padding: 10px;
+            color: #fff;
+            text-align: center;
+            border-radius: 10px;
+            box-shadow: 15px 15px #2C3E50;
+
+            .pre-text-p{
+                font-family: $font-nornmal;
+                > p{
+                    font-size: 1.5em;
+                    margin: 2px;
+                }
+            }
+        }
+    }
+}
+
+.cmsecondary{
+    width: 100vw;
+    background: #1C2833;
+    color: #fff;
+    font-family: $font-nornmal;
+
+    .cmsecondary-margin-w {
+        width: 90%;
+        margin: 0 auto;
+        padding: 5rem 0;  
+
+        .cmsecondary-title{
+            border-bottom: 1px solid #2C3E50;
+            margin: 15px 0;
+
+            h2{
+                margin: 10px;
+                font-size: 2em;
+            }
+        }
+        
+        .cont-cms-gal-txt{
+            border-top: 1px solid #1C2833;
+            margin-bottom: 50px;
+
+            .txt-title{
+                font-size: 2rem;
+                text-align: center;
+                
+                h4{
+                    margin: 5px 0;
+                }
+            }
+
+            .txt-date{
+                text-align: right;
+                color: #ABB2B9;
+
+                span.date {
+                    color: #D5D8DC;
+                }
+            }
+        }
+
+        .cont-cms-gal-btn{
+            font-size: 24px;
+            position: absolute;
+            bottom: 0;
+
+            > div a{
+                color: #eaeaea;
+                text-decoration: none;
+            }
+
+            > div.gal-btn-repo a:hover{
+                color: #9cdaf1;
+            }
+
+            > div.gal-btn-url a:hover{
+                color: #00ffff;
+            }
+        }
+    }
+}
+
+.cmters{
+    width: 100vw;
+    background: #17202A;
+    color: #fff;
+    font-family: $font-nornmal;
+
+    .cmters-margin-w {
+        width: 90%;
+        margin: 0 auto;
+        padding: 5rem 0;  
+        
+        .cmters-title{
+            border-bottom: 1px solid #2C3E50;
+            margin: 15px 0;
+
+            h2 {
+                margin: 10px;
+                font-size: 2em;
+            }
+        }
+
+        .cmtech{
+            background: #273746;
+            text-align: center;
+            border-radius: 3px;
+            box-shadow: 10px 10px #212F3C;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+
+            .cmtech-img{
+                background: #2C3E50;
+                margin: .5em; 
+                padding: 3em;
+                border-radius: 3px;
+                height: 390px;
+                 
+                img {
+                    height: 100%;
+                }
+            }
+
+            .cmtech-txt{
+                color: #fff;
+                font-size: 2em;
+                margin: 0;
+
+                p{
+                    margin: 5px 0;
+                }
+            }
+        } 
+    }
+}
+@media (max-width: 1440px){
+    .drop-shadow > span.contentpp > .conttxtmailto {
+        letter-spacing: 0.3em;
+        font-size: 2.5rem;
+    }
+
+    .drop-shadow > span.contentpp .conttxtname h1 {
+        font-size: 5rem;
+        margin: 0;
+    }
+}
+
+@media (max-width: 1220px){
+    body{
+        font-size: 14px;
+    }
+    .drop-shadow > span.contentpp > .conttxtmailto {
+        letter-spacing: 0.2em;
+        font-size: 2.3rem;
+    }
+}
+
+@media (max-width: 1018px){
+    .glass{
+        display: none;
+    }
+
+    .cmprincipal .cmprimary-margin-w {
+        width: 100%;
+        margin: 0 auto;
+        padding: 1.2rem 0;
     }
 }
 
@@ -188,9 +444,83 @@ body{
     }
 }
 
+@media(max-width: 863px){
+    .cmters .cmters-margin-w {
+        width: 100%;
+        margin: 0 auto;
+        padding: 5rem 0;
+    }
+}
+
+ 
+@media(max-width: 740px){
+    .drop-shadow > span.contentpp .conttxtname h1 {
+        font-size: 4rem;
+        margin: 0;
+    }
+
+    .drop-shadow > span.contentpp > .conttxtmailto {
+        letter-spacing: 0.2em;
+        font-size: 1.5rem;
+    }
+
+    .drop-shadow > span.contentpp > .conttxtareas {
+        font-size: 2rem;
+    }
+ }
+
 @media (max-width: 640px) {
   
   .drop-shadow > span {
       font-size: 2em;
   }
+}
+
+@media (max-width: 490px){
+    .drop-shadow > span.contentpp{
+        padding: 0;
+    }
+
+    .drop-shadow > span.contentpp .conttxtname h1 {
+        
+        letter-spacing: 0.4em;
+        font-size: 2.5rem;
+        margin: 0;
+    }
+
+    .drop-shadow > span.contentpp > .conttxtmailto {
+        letter-spacing: 0.2em;
+        font-size: 1.1rem;
+    }
+
+    .drop-shadow > span.contentpp > .conttxtareas {
+        font-size: 1.3rem;
+    } 
+}
+
+@media (max-width: 440px){
+    .cmters .cmters-margin-w .cmtech .cmtech-img {
+        width: 100%;
+        height: auto;
+    }
+
+    .cmters .cmters-margin-w .cmtech .cmtech-img img {
+        width: 100%;
+    }
+}
+
+@media (max-width: 370px){
+    .drop-shadow > span.contentpp .conttxtname h1 {
+        font-size: 2rem;
+        margin: 0;
+    }
+
+    .drop-shadow > span.contentpp > .conttxtmailto {
+        letter-spacing: 0.1em;
+        font-size: 1rem;
+    }
+
+    .drop-shadow > span.contentpp > .conttxtareas {
+        font-size: 1.3rem;
+    } 
 }
